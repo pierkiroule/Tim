@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { activeRemaining, impactPerFuture, meetingRemaining } from './domain/meeting'
 import { Assistant } from './components/Assistant'
 import { Configuration } from './components/Configuration'
@@ -7,6 +7,7 @@ import { Dashboard } from './components/Dashboard'
 import { Header } from './components/Header'
 import { MikadoIntro } from './components/MikadoIntro'
 import { SolarTimeline } from './components/SolarTimeline'
+import { TutorialModal } from './components/TutorialModal'
 import { useMeetingTimer } from './hooks/useMeetingTimer'
 
 function statusFor(meeting, remaining) {
@@ -18,11 +19,19 @@ function statusFor(meeting, remaining) {
 }
 
 export default function App() {
+  const [tutorialOpen, setTutorialOpen] = useState(false)
+  const tutorialShown = useRef(false)
   const { meeting, animationKey, introKey, configure, start, togglePause, next, reset, rename } = useMeetingTimer()
   const remaining = activeRemaining(meeting)
   const totalRemaining = meetingRemaining(meeting)
   const impact = impactPerFuture(meeting)
   const status = statusFor(meeting, remaining)
+  const showTutorial = useCallback(() => {
+    if (tutorialShown.current) return
+    tutorialShown.current = true
+    setTutorialOpen(true)
+  }, [])
+  const closeTutorial = useCallback(() => setTutorialOpen(false), [])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -36,7 +45,8 @@ export default function App() {
 
   return (
     <div className="app-shell" id="top">
-      <MikadoIntro key={introKey} />
+      <MikadoIntro key={introKey} onComplete={showTutorial} />
+      {tutorialOpen && <TutorialModal onClose={closeTutorial} />}
       <Header status={status.label} tone={status.tone} />
       <main>
         <Configuration meeting={meeting} onConfigure={configure} />

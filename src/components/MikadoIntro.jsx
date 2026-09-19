@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const sticks = [
   [-72, -24, -16, 0],
@@ -15,14 +15,22 @@ const sticks = [
   [12, -4, -22, 330],
 ]
 
-export function MikadoIntro() {
+export function MikadoIntro({ onComplete }) {
   const [visible, setVisible] = useState(true)
+  const completed = useRef(false)
+
+  const complete = useCallback(() => {
+    if (completed.current) return
+    completed.current = true
+    setVisible(false)
+    onComplete?.()
+  }, [onComplete])
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const timer = window.setTimeout(() => setVisible(false), reducedMotion ? 50 : 3200)
+    const timer = window.setTimeout(complete, reducedMotion ? 50 : 3200)
     return () => window.clearTimeout(timer)
-  }, [])
+  }, [complete])
 
   if (!visible) return null
 
@@ -46,7 +54,7 @@ export function MikadoIntro() {
         <p>Chaque idée trouve son temps.</p>
         <span className="mikado-intro__progress" aria-hidden="true" />
       </div>
-      <button className="mikado-intro__skip" type="button" onClick={() => setVisible(false)}>Passer l’introduction</button>
+      <button className="mikado-intro__skip" type="button" onClick={complete}>Passer l’introduction</button>
     </div>
   )
 }
