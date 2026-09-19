@@ -51,7 +51,8 @@ La logique de calcul est isolée dans `src/domain/meeting.js`. Les composants ne
 2. Le chronomètre utilise `performance.now()` pour mesurer le temps écoulé.
 3. Un sujet terminé en avance libère du temps pour chacun des sujets suivants.
 4. Un dépassement réduit en direct leur budget disponible.
-5. Le tableau de bord, Mister Timer et le graphe radial sont dérivés du même état.
+5. Une pause optionnelle est automatiquement soustraite du temps des sujets et peut être positionnée sur le graphe radial.
+6. Le tableau de bord, Mister Time et le graphe radial sont dérivés du même état.
 
 Les entrées sont bornées à 1–480 minutes et 2–100 sujets. Trois formats prédéfinis permettent aussi de préparer instantanément une réunion de 60, 90 ou 120 minutes.
 

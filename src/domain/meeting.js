@@ -4,28 +4,40 @@ export const MIN_DURATION = 1
 export const MAX_DURATION = 480
 export const MIN_SUBJECTS = 2
 export const MAX_SUBJECTS = 100
+export const MIN_PAUSE = 0
 
 export function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value))
 }
 
-export function normalizeConfig(duration, subjectCount) {
+export function normalizeConfig(duration, subjectCount, pauseMinutes = 0, pauseAfter) {
   const safeDuration = Number.isFinite(Number(duration)) ? Number(duration) : DEFAULT_DURATION
   const safeCount = Number.isFinite(Number(subjectCount)) ? Number(subjectCount) : DEFAULT_SUBJECT_COUNT
 
+  const normalizedDuration = clamp(Math.round(safeDuration), MIN_DURATION, MAX_DURATION)
+  const normalizedCount = clamp(Math.round(safeCount), MIN_SUBJECTS, MAX_SUBJECTS)
+  const safePause = Number.isFinite(Number(pauseMinutes)) ? Number(pauseMinutes) : 0
+  const normalizedPause = clamp(Math.round(safePause), MIN_PAUSE, Math.max(0, normalizedDuration - 1))
+  const defaultPauseAfter = Math.floor((normalizedCount - 1) / 2)
+  const safePauseAfter = Number.isFinite(Number(pauseAfter)) ? Number(pauseAfter) : defaultPauseAfter
+
   return {
-    duration: clamp(Math.round(safeDuration), MIN_DURATION, MAX_DURATION),
-    subjectCount: clamp(Math.round(safeCount), MIN_SUBJECTS, MAX_SUBJECTS),
+    duration: normalizedDuration,
+    subjectCount: normalizedCount,
+    pauseMinutes: normalizedPause,
+    pauseAfter: clamp(Math.round(safePauseAfter), 0, normalizedCount - 1),
   }
 }
 
-export function createMeeting(duration = DEFAULT_DURATION, subjectCount = DEFAULT_SUBJECT_COUNT) {
-  const config = normalizeConfig(duration, subjectCount)
-  const totalSeconds = config.duration * 60
+export function createMeeting(duration = DEFAULT_DURATION, subjectCount = DEFAULT_SUBJECT_COUNT, pauseMinutes = 0, pauseAfter) {
+  const config = normalizeConfig(duration, subjectCount, pauseMinutes, pauseAfter)
+  const pauseSeconds = config.pauseMinutes * 60
+  const totalSeconds = config.duration * 60 - pauseSeconds
   const initialShare = totalSeconds / config.subjectCount
 
   return {
     ...config,
+    pauseSeconds,
     totalSeconds,
     initialShare,
     activeIndex: 0,

@@ -17,7 +17,7 @@ function statusFor(meeting, remaining) {
 }
 
 export default function App() {
-  const { meeting, animationKey, introKey, configure, start, next, reset, rename } = useMeetingTimer()
+  const { meeting, animationKey, introKey, configure, start, next, reset, rename, movePause } = useMeetingTimer()
   const remaining = activeRemaining(meeting)
   const totalRemaining = meetingRemaining(meeting)
   const impact = impactPerFuture(meeting)
@@ -41,7 +41,7 @@ export default function App() {
         <Configuration meeting={meeting} onConfigure={configure} />
         <Dashboard meeting={meeting} meetingTime={totalRemaining} subjectTime={remaining} impact={impact} />
         <Assistant meeting={meeting} remaining={remaining} />
-        <SolarTimeline key={animationKey} meeting={meeting} remaining={remaining} onRename={rename} />
+        <SolarTimeline key={animationKey} meeting={meeting} remaining={remaining} onRename={rename} onMovePause={movePause} />
         <Controls meeting={meeting} onStart={start} onNext={next} onReset={reset} />
       </main>
       <footer><span>MikadoTimer</span><span>Le temps partagé, sans perdre le fil.</span><span className="shortcuts">Espace · lancer &nbsp; Entrée · suivant</span></footer>

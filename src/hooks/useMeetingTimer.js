@@ -17,11 +17,11 @@ export function useMeetingTimer() {
     return () => window.clearInterval(timer)
   }, [])
 
-  const configure = useCallback((duration, subjectCount) => {
+  const configure = useCallback((duration, subjectCount, pauseMinutes, pauseAfter) => {
     setMeeting((current) => {
       if (current.started) return current
-      const config = normalizeConfig(duration, subjectCount)
-      return createMeeting(config.duration, config.subjectCount)
+      const config = normalizeConfig(duration, subjectCount, pauseMinutes, pauseAfter)
+      return createMeeting(config.duration, config.subjectCount, config.pauseMinutes, config.pauseAfter)
     })
   }, [])
 
@@ -41,7 +41,7 @@ export function useMeetingTimer() {
 
   const reset = useCallback(() => {
     lastTick.current = performance.now()
-    setMeeting((current) => createMeeting(current.duration, current.subjectCount))
+    setMeeting((current) => createMeeting(current.duration, current.subjectCount, current.pauseMinutes, current.pauseAfter))
     setAnimationKey((key) => key + 1)
     setIntroKey((key) => key + 1)
   }, [])
@@ -55,5 +55,9 @@ export function useMeetingTimer() {
     }))
   }, [])
 
-  return { meeting, animationKey, introKey, configure, start, next, reset, rename }
+  const movePause = useCallback((pauseAfter) => {
+    setMeeting((current) => current.started ? current : { ...current, pauseAfter: Math.max(0, Math.min(current.subjectCount - 1, pauseAfter)) })
+  }, [])
+
+  return { meeting, animationKey, introKey, configure, start, next, reset, rename, movePause }
 }
