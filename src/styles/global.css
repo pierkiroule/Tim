@@ -22,13 +22,27 @@ button, input { font: inherit; }
 button { touch-action: manipulation; }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--blue) 35%, transparent); outline-offset: 3px; }
 
+.mikado-intro { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; overflow: hidden; background: var(--ink); color: white; animation: intro-curtain 3.2s ease-in-out forwards; }
+.mikado-intro::before { position: absolute; width: min(150vw, 960px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(65,105,225,.2), transparent 65%); content: ''; animation: intro-glow 2.4s ease-out forwards; }
+.mikado-intro__scene { position: relative; display: grid; justify-items: center; min-width: 280px; }
+.mikado-intro__sticks { position: relative; width: 220px; height: 220px; }
+.mikado-intro__stick { --stick-color: var(--blue); position: absolute; top: 50%; left: 50%; width: 92px; height: 5px; border-radius: 99px; background: var(--stick-color); box-shadow: 0 0 16px color-mix(in srgb, var(--stick-color) 58%, transparent); transform-origin: 0 50%; opacity: 0; animation: intro-stick 2.15s cubic-bezier(.65,0,.2,1) var(--delay) forwards; }
+.mikado-intro__stick::after { position: absolute; right: 8px; width: 12px; height: 100%; background: rgba(255,255,255,.8); content: ''; }
+.mikado-intro__stick--1 { --stick-color: #42c785; }
+.mikado-intro__stick--2 { --stick-color: #ef6262; }
+.mikado-intro__dial { position: absolute; inset: 50%; width: 122px; aspect-ratio: 1; border: 1px solid rgba(255,255,255,.55); border-radius: 50%; opacity: 0; transform: translate(-50%, -50%) scale(.4); animation: intro-dial 1s ease-out 1.35s forwards; }
+.mikado-intro__dial::after { position: absolute; inset: 50%; width: 50px; aspect-ratio: 1; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; content: ''; transform: translate(-50%, -50%); }
+.mikado-intro__brand { margin-top: 6px; font: 600 clamp(30px, 8vw, 46px)/1 'Manrope', sans-serif; letter-spacing: -.055em; opacity: 0; transform: translateY(12px); animation: intro-copy .65s ease-out 1.55s forwards; }
+.mikado-intro__brand strong { font-weight: 800; }
+.mikado-intro__scene p { margin: 12px 0 0; color: #aaa9a5; font-size: 11px; letter-spacing: .04em; opacity: 0; transform: translateY(8px); animation: intro-copy .65s ease-out 1.72s forwards; }
+
 .app-shell { width: min(100% - 32px, 1120px); margin: 0 auto; }
 .app-header { height: 82px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: 11px; color: var(--ink); text-decoration: none; font: 700 17px/1 'Manrope', sans-serif; letter-spacing: -.04em; }
 .brand strong { font-weight: 800; }
 .brand-mark { width: 28px; height: 28px; display: grid; place-items: center; position: relative; }
 .brand-mark i { position: absolute; display: block; width: 23px; height: 3px; border-radius: 4px; background: var(--ink); }
-.brand-mark i:first-child { transform: rotate(0deg); }
+.brand-mark i:first-child { transform: rotate(0deg); background: var(--green); }
 .brand-mark i:nth-child(2) { transform: rotate(60deg); background: var(--blue); }
 .brand-mark i:last-child { transform: rotate(-60deg); background: var(--red); }
 .status { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .03em; }
@@ -94,6 +108,16 @@ footer { display: flex; justify-content: space-between; gap: 20px; padding: 25px
 @keyframes blink { 0%, 46%, 52%, 100% { transform: scaleY(1); } 49% { transform: scaleY(.1); } }
 @keyframes breathe { 50% { opacity: .72; } }
 @keyframes mikado-launch { from { opacity: 0; transform: scale(.15) rotate(-16deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes intro-stick {
+  0% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--start)) scaleX(.45); }
+  18% { opacity: 1; }
+  48% { opacity: 1; transform: translate(var(--x), var(--y)) rotate(var(--start)) scaleX(1.15); }
+  78%, 100% { opacity: 1; transform: translate(0) rotate(var(--end)) scaleX(1); }
+}
+@keyframes intro-dial { to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes intro-copy { to { opacity: 1; transform: translateY(0); } }
+@keyframes intro-glow { from { opacity: 0; transform: scale(.65); } to { opacity: 1; transform: scale(1); } }
+@keyframes intro-curtain { 0%, 78% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
 
 @media (max-width: 700px) {
   .app-shell { width: min(100% - 24px, 1120px); }.app-header { height: 68px; } main { padding-top: 36px; }.section-heading { grid-template-columns: 1fr; gap: 14px; }.config-grid { grid-template-columns: 1fr; }.dashboard { grid-template-columns: repeat(2, 1fr); }.dashboard article, .dashboard article:nth-child(-n + 3), .dashboard-clock { grid-column: span 1; padding: 18px 12px; border-top: 1px solid rgba(255,255,255,.12); text-align: center; }.dashboard-global { grid-column: 1 / -1 !important; border-top: 0 !important; }.dashboard strong { font-size: clamp(18px, 6vw, 28px); }.timeline-card { padding: 24px 12px 4px; }.timeline-head { display: block; text-align: center; }.legend { justify-content: center; margin-top: 16px; }.solar-wrap { margin-top: -2px; }.hub { width: 38%; padding: 10px; }.hub input { font-size: 11px; }.control-bar { grid-template-columns: 1fr; }.button--wide { grid-column: auto; }.shortcuts { display: none; }
@@ -104,5 +128,6 @@ footer { display: flex; justify-content: space-between; gap: 20px; padding: 25px
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mikado-intro { display: none; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }

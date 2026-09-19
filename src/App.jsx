@@ -5,6 +5,7 @@ import { Configuration } from './components/Configuration'
 import { Controls } from './components/Controls'
 import { Dashboard } from './components/Dashboard'
 import { Header } from './components/Header'
+import { MikadoIntro } from './components/MikadoIntro'
 import { SolarTimeline } from './components/SolarTimeline'
 import { useMeetingTimer } from './hooks/useMeetingTimer'
 
@@ -34,6 +35,7 @@ export default function App() {
 
   return (
     <div className="app-shell" id="top">
+      <MikadoIntro />
       <Header status={status.label} tone={status.tone} />
       <main>
         <Configuration meeting={meeting} onConfigure={configure} />
@@ -42,7 +44,7 @@ export default function App() {
         <SolarTimeline key={animationKey} meeting={meeting} remaining={remaining} onRename={rename} />
         <Controls meeting={meeting} onStart={start} onNext={next} onReset={reset} />
       </main>
-      <footer><span>MicadoTimer</span><span>Le temps partagé, sans perdre le fil.</span><span className="shortcuts">Espace · lancer &nbsp; Entrée · suivant</span></footer>
+      <footer><span>MikadoTimer</span><span>Le temps partagé, sans perdre le fil.</span><span className="shortcuts">Espace · lancer &nbsp; Entrée · suivant</span></footer>
     </div>
   )
 }

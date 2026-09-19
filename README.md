@@ -1,4 +1,4 @@
-# MicadoTimer
+# MikadoTimer
 
 Webapp React qui répartit le temps d'une réunion entre ses sujets et redistribue automatiquement l'avance ou le retard sur ceux qui restent.
 
