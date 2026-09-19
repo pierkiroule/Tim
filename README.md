@@ -1,6 +1,8 @@
-# MicadoTimer
+# MikadoTimer
 
 Webapp React qui répartit le temps d'une réunion entre ses sujets et redistribue automatiquement l'avance ou le retard sur ceux qui restent.
+
+Le cadrage proposé au démarrage est de 3 heures d’échanges, 30 sujets et 15 minutes de pause prévue. Un bouton permet de charger un cadrage démo de 3 minutes, 10 sujets et 1 minute de pause.
 
 ## Stack
 
@@ -51,9 +53,10 @@ La logique de calcul est isolée dans `src/domain/meeting.js`. Les composants ne
 2. Le chronomètre utilise `performance.now()` pour mesurer le temps écoulé.
 3. Un sujet terminé en avance libère du temps pour chacun des sujets suivants.
 4. Un dépassement réduit en direct leur budget disponible.
-5. Le tableau de bord, Mister Timer et le graphe radial sont dérivés du même état.
+5. Une pause peut être lancée à tout moment ; chaque seconde écoulée est redistribuée en direct sur les sujets restants.
+6. Le tableau de bord, Mister Time et le graphe radial sont dérivés du même état.
 
-Les entrées sont bornées à 5–480 minutes et 1–24 sujets afin de garantir un rendu lisible et stable.
+Les entrées sont bornées à 1–480 minutes et 1–100 sujets. Une durée de pause prévue peut être ajoutée à l’heure de fin.
 
 ## Déploiement Vercel
 
@@ -77,5 +80,5 @@ Aucune variable d'environnement n'est nécessaire.
 - statut et assistant annoncés aux technologies d'assistance ;
 - description du graphe SVG ;
 - navigation clavier et indicateurs de focus visibles ;
-- raccourcis `Espace` pour lecture/pause et `Entrée` pour le sujet suivant ;
+- raccourcis `Espace` pour lancer la réunion et `Entrée` pour le sujet suivant ;
 - animations réduites lorsque `prefers-reduced-motion` est activé.

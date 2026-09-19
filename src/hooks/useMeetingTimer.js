@@ -3,6 +3,8 @@ import { closeActiveSubject, createMeeting, normalizeConfig, tickMeeting } from 
 
 export function useMeetingTimer() {
   const [meeting, setMeeting] = useState(() => createMeeting())
+  const [animationKey, setAnimationKey] = useState(0)
+  const [introKey, setIntroKey] = useState(0)
   const lastTick = useRef(performance.now())
 
   useEffect(() => {
@@ -15,20 +17,21 @@ export function useMeetingTimer() {
     return () => window.clearInterval(timer)
   }, [])
 
-  const configure = useCallback((duration, subjectCount) => {
+  const configure = useCallback((duration, subjectCount, plannedPauseMinutes) => {
     setMeeting((current) => {
       if (current.started) return current
-      const config = normalizeConfig(duration, subjectCount)
-      return createMeeting(config.duration, config.subjectCount)
+      const config = normalizeConfig(duration, subjectCount, plannedPauseMinutes)
+      return createMeeting(config.duration, config.subjectCount, config.plannedPauseMinutes)
     })
   }, [])
 
-  const toggle = useCallback(() => {
+  const start = useCallback(() => {
     lastTick.current = performance.now()
     setMeeting((current) => {
-      if (current.finished) return createMeeting(current.duration, current.subjectCount)
-      return { ...current, started: true, running: !current.running }
+      if (current.started || current.finished) return current
+      return { ...current, started: true, running: true }
     })
+    setAnimationKey((key) => key + 1)
   }, [])
 
   const next = useCallback(() => {
@@ -36,9 +39,18 @@ export function useMeetingTimer() {
     setMeeting((current) => closeActiveSubject(current))
   }, [])
 
+  const togglePause = useCallback(() => {
+    lastTick.current = performance.now()
+    setMeeting((current) => current.started && !current.finished
+      ? { ...current, paused: !current.paused, running: current.paused }
+      : current)
+  }, [])
+
   const reset = useCallback(() => {
     lastTick.current = performance.now()
-    setMeeting((current) => createMeeting(current.duration, current.subjectCount))
+    setMeeting((current) => createMeeting(current.duration, current.subjectCount, current.plannedPauseMinutes))
+    setAnimationKey((key) => key + 1)
+    setIntroKey((key) => key + 1)
   }, [])
 
   const rename = useCallback((title) => {
@@ -50,5 +62,5 @@ export function useMeetingTimer() {
     }))
   }, [])
 
-  return { meeting, configure, toggle, next, reset, rename }
+  return { meeting, animationKey, introKey, configure, start, togglePause, next, reset, rename }
 }

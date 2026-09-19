@@ -1,33 +1,42 @@
-export const DEFAULT_DURATION = 60
-export const DEFAULT_SUBJECT_COUNT = 10
-export const MIN_DURATION = 5
+export const DEFAULT_DURATION = 180
+export const DEFAULT_SUBJECT_COUNT = 30
+export const DEFAULT_PLANNED_PAUSE = 15
+export const MIN_DURATION = 1
 export const MAX_DURATION = 480
 export const MIN_SUBJECTS = 1
-export const MAX_SUBJECTS = 24
+export const MAX_SUBJECTS = 100
+export const MIN_PLANNED_PAUSE = 0
+export const MAX_PLANNED_PAUSE = 480
 
 export function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value))
 }
 
-export function normalizeConfig(duration, subjectCount) {
+export function normalizeConfig(duration, subjectCount, plannedPauseMinutes = DEFAULT_PLANNED_PAUSE) {
   const safeDuration = Number.isFinite(Number(duration)) ? Number(duration) : DEFAULT_DURATION
   const safeCount = Number.isFinite(Number(subjectCount)) ? Number(subjectCount) : DEFAULT_SUBJECT_COUNT
 
+  const safePause = Number.isFinite(Number(plannedPauseMinutes)) ? Number(plannedPauseMinutes) : 0
   return {
     duration: clamp(Math.round(safeDuration), MIN_DURATION, MAX_DURATION),
     subjectCount: clamp(Math.round(safeCount), MIN_SUBJECTS, MAX_SUBJECTS),
+    plannedPauseMinutes: clamp(Math.round(safePause), MIN_PLANNED_PAUSE, MAX_PLANNED_PAUSE),
   }
 }
 
-export function createMeeting(duration = DEFAULT_DURATION, subjectCount = DEFAULT_SUBJECT_COUNT) {
-  const config = normalizeConfig(duration, subjectCount)
+export function createMeeting(duration = DEFAULT_DURATION, subjectCount = DEFAULT_SUBJECT_COUNT, plannedPauseMinutes = DEFAULT_PLANNED_PAUSE) {
+  const config = normalizeConfig(duration, subjectCount, plannedPauseMinutes)
   const totalSeconds = config.duration * 60
+  const pauseAllowance = config.plannedPauseMinutes * 60
   const initialShare = totalSeconds / config.subjectCount
 
   return {
     ...config,
     totalSeconds,
+    pauseAllowance,
     initialShare,
+    pauseSpent: 0,
+    paused: false,
     activeIndex: 0,
     started: false,
     running: false,
@@ -37,6 +46,7 @@ export function createMeeting(duration = DEFAULT_DURATION, subjectCount = DEFAUL
       title: `Sujet ${index + 1}`,
       spent: 0,
       allocation: initialShare,
+      pauseDeduction: 0,
       done: false,
       result: 0,
     })),
@@ -48,7 +58,7 @@ export function totalSpent(meeting) {
 }
 
 export function meetingRemaining(meeting) {
-  return meeting.totalSeconds - totalSpent(meeting)
+  return meeting.totalSeconds + meeting.pauseAllowance - totalSpent(meeting) - meeting.pauseSpent
 }
 
 export function activeSubject(meeting) {
@@ -74,7 +84,7 @@ export function liveAllocation(meeting, index) {
 
   const future = futureIndices(meeting)
   const active = activeSubject(meeting)
-  const overrun = active ? Math.max(0, active.spent - active.allocation) : 0
+  const overrun = active ? Math.max(0, active.spent - (active.allocation + active.pauseDeduction)) : 0
   return Math.max(0, subject.allocation - (future.length ? overrun / future.length : 0))
 }
 
@@ -84,7 +94,24 @@ export function impactPerFuture(meeting) {
 }
 
 export function tickMeeting(meeting, elapsedSeconds) {
-  if (!meeting.running || meeting.finished || elapsedSeconds <= 0) return meeting
+  if (meeting.finished || elapsedSeconds <= 0) return meeting
+  if (meeting.paused) {
+    const remainingCount = meeting.subjects.filter((subject) => !subject.done).length
+    const previousOverage = Math.max(0, meeting.pauseSpent - meeting.pauseAllowance)
+    const nextPauseSpent = meeting.pauseSpent + elapsedSeconds
+    const nextOverage = Math.max(0, nextPauseSpent - meeting.pauseAllowance)
+    const timeToRedistribute = nextOverage - previousOverage
+    return {
+      ...meeting,
+      pauseSpent: nextPauseSpent,
+      subjects: meeting.subjects.map((subject) => subject.done ? subject : {
+        ...subject,
+        allocation: Math.max(0, subject.allocation - timeToRedistribute / Math.max(1, remainingCount)),
+        pauseDeduction: subject.pauseDeduction + timeToRedistribute / Math.max(1, remainingCount),
+      }),
+    }
+  }
+  if (!meeting.running) return meeting
   return {
     ...meeting,
     subjects: meeting.subjects.map((subject, index) =>
@@ -108,11 +135,12 @@ export function closeActiveSubject(meeting) {
     return { ...meeting, subjects, running: false, finished: true }
   }
 
-  const pool = Math.max(0, meeting.totalSeconds - subjects.reduce((sum, item) => sum + item.spent, 0))
+  const pauseOverage = Math.max(0, meeting.pauseSpent - meeting.pauseAllowance)
+  const pool = Math.max(0, meeting.totalSeconds - pauseOverage - subjects.reduce((sum, item) => sum + item.spent, 0))
   const remainingCount = subjects.filter((subject) => !subject.done).length
   const nextAllocation = remainingCount ? pool / remainingCount : 0
   const redistributed = subjects.map((subject) =>
-    subject.done ? subject : { ...subject, allocation: nextAllocation },
+    subject.done ? subject : { ...subject, allocation: nextAllocation, pauseDeduction: 0 },
   )
 
   return {

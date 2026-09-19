@@ -25,14 +25,15 @@ function Stick({ meeting, subject, index, active }) {
   const badge = point(MAX_RADIUS + 16, angle)
   const delta = subject.done ? subject.result : liveAllocation(meeting, index) - meeting.initialShare
   const state = subject.done ? 'done' : active ? 'active' : delta > 1 ? 'gain' : delta < -1 ? 'loss' : 'planned'
+  const compact = meeting.subjects.length > 24
 
   return (
-    <g className={`stick stick--${state}`}>
+    <g className={`stick stick--${state} ${compact ? 'stick--compact' : ''}`} style={{ '--stick-index': index }}>
       <line className="stick-track" x1={start.x} y1={start.y} x2={cap.x} y2={cap.y} />
       <line className="stick-value" x1={start.x} y1={start.y} x2={end.x} y2={end.y} />
       <circle className="stick-plan" cx={plan.x} cy={plan.y} r="2.5" />
-      <circle className="stick-badge" cx={badge.x} cy={badge.y} r="11" />
-      <text className="stick-label" x={badge.x} y={badge.y + 0.5}>{subject.done ? '✓' : index + 1}</text>
+      <circle className="stick-badge" cx={badge.x} cy={badge.y} r={compact ? 3 : 11} />
+      {!compact && <text className="stick-label" x={badge.x} y={badge.y + 0.5}>{subject.done ? '✓' : index + 1}</text>}
       {meeting.subjects.length <= 12 && !active && Math.abs(delta) >= 1 && (
         <text className="stick-delta" x={badge.x} y={badge.y + (badge.y < CENTER ? -17 : 20)}>{formatDelta(delta)}</text>
       )}
@@ -43,6 +44,9 @@ function Stick({ meeting, subject, index, active }) {
 export function SolarTimeline({ meeting, remaining, onRename }) {
   const active = meeting.subjects[meeting.activeIndex]
   const progress = active ? Math.min(100, Math.round((active.spent / Math.max(1, active.allocation)) * 100)) : 100
+  const pauseBalance = meeting.pauseAllowance - meeting.pauseSpent
+  const pauseProgress = meeting.pauseAllowance > 0 ? Math.min(1, meeting.pauseSpent / meeting.pauseAllowance) : 1
+  const pauseOverrun = meeting.paused && pauseBalance < 0
   return (
     <section className="timeline-card" aria-label="Répartition visuelle du temps">
       <div className="timeline-head">
@@ -58,10 +62,11 @@ export function SolarTimeline({ meeting, remaining, onRename }) {
           {meeting.subjects.map((subject, index) => <Stick key={subject.id} meeting={meeting} subject={subject} index={index} active={!meeting.finished && index === meeting.activeIndex} />)}
         </svg>
         <div className="hub">
-          <span>{meeting.finished ? 'Réunion terminée' : `Sujet ${meeting.activeIndex + 1}`}</span>
-          {!meeting.finished && <input value={active?.title ?? ''} onChange={(event) => onRename(event.target.value)} onBlur={(event) => !event.target.value.trim() && onRename(`Sujet ${meeting.activeIndex + 1}`)} aria-label="Titre du sujet actif" maxLength="50" />}
-          <strong className={remaining < 0 ? 'negative' : ''}>{meeting.finished ? '✓' : formatTime(remaining, { signed: true })}</strong>
-          <small>{meeting.finished ? 'Tous les sujets sont traités' : `${progress}% du budget utilisé`}</small>
+          <span>{meeting.finished ? 'Réunion terminée' : meeting.paused ? 'Pause en cours' : `Sujet ${meeting.activeIndex + 1}`}</span>
+          {!meeting.finished && !meeting.paused && <input value={active?.title ?? ''} onChange={(event) => onRename(event.target.value)} onBlur={(event) => !event.target.value.trim() && onRename(`Sujet ${meeting.activeIndex + 1}`)} aria-label="Titre du sujet actif" maxLength="50" />}
+          {meeting.paused && <div className={`pause-meter ${pauseOverrun ? 'pause-meter--overrun' : ''}`} style={{ '--pause-angle': `${pauseProgress * 360}deg` }} aria-label={pauseOverrun ? `Pause dépassée de ${formatTime(Math.abs(pauseBalance))}` : `${formatTime(Math.max(0, pauseBalance))} de pause prévue restante`} role="img"><span>Ⅱ</span></div>}
+          <strong className={(meeting.paused ? pauseBalance : remaining) < 0 ? 'negative' : ''}>{meeting.finished ? '✓' : formatTime(meeting.paused ? pauseBalance : remaining, { signed: true })}</strong>
+          <small>{meeting.finished ? 'Tous les sujets sont traités' : meeting.paused ? pauseOverrun ? 'Dépassement redistribué en direct' : 'Pause prévue restante' : `${progress}% du budget utilisé`}</small>
         </div>
       </div>
     </section>
