@@ -8,6 +8,7 @@ import {
   meetingRemaining,
   normalizeConfig,
   reframeMeeting,
+  remainingSubjectCount,
   tickMeeting,
 } from './meeting'
 
@@ -27,6 +28,12 @@ describe('meeting domain', () => {
 
   it('accepts a meeting with only one subject', () => {
     expect(createMeeting(10, 1).subjects).toHaveLength(1)
+  })
+
+  it('counts the active and future unfinished subjects', () => {
+    const meeting = createMeeting(10, 3)
+    meeting.subjects[0].done = true
+    expect(remainingSubjectCount(meeting)).toBe(2)
   })
 
   it('allocates the budget equally', () => {

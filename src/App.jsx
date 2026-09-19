@@ -9,6 +9,7 @@ import { MikadoIntro } from './components/MikadoIntro'
 import { SolarTimeline } from './components/SolarTimeline'
 import { TutorialModal } from './components/TutorialModal'
 import { useMeetingTimer } from './hooks/useMeetingTimer'
+import { useAudioMessages } from './hooks/useAudioMessages'
 
 function statusFor(meeting, remaining) {
   if (meeting.finished) return { label: 'Terminée', tone: 'success' }
@@ -22,6 +23,7 @@ export default function App() {
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const tutorialShown = useRef(false)
   const { meeting, animationKey, introKey, configure, start, togglePause, next, reset, rename } = useMeetingTimer()
+  const { audioEnabled, toggleAudio } = useAudioMessages(meeting)
   const remaining = activeRemaining(meeting)
   const totalRemaining = meetingRemaining(meeting)
   const impact = impactPerFuture(meeting)
@@ -55,7 +57,7 @@ export default function App() {
     <div className="app-shell" id="top">
       <MikadoIntro key={introKey} onComplete={showTutorial} />
       {tutorialOpen && <TutorialModal onClose={closeTutorial} />}
-      <Header status={status.label} tone={status.tone} />
+      <Header status={status.label} tone={status.tone} audioEnabled={audioEnabled} onToggleAudio={toggleAudio} />
       <main>
         <Configuration meeting={meeting} onConfigure={configure} />
         <Dashboard meeting={meeting} meetingTime={totalRemaining} subjectTime={remaining} impact={impact} />

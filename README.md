@@ -82,3 +82,11 @@ Aucune variable d'environnement n'est nécessaire.
 - navigation clavier et indicateurs de focus visibles ;
 - raccourcis `Espace` pour lancer la réunion et `Entrée` pour le sujet suivant ;
 - animations réduites lorsque `prefers-reduced-motion` est activé.
+
+## Messages audio
+
+Le bouton haut-parleur de l’en-tête active ou désactive ensemble les signatures sonores et la voix de Mister Time. Les messages sont **désactivés par défaut** et la préférence est conservée localement, indépendamment de la réunion.
+
+Quatre événements seulement sont annoncés : le démarrage de la réunion, l’arrivée à 80 % du temps d’un sujet, le début d’une pause et la reprise (avec le nombre de situations et leur temps disponible). L’activation ne rejoue jamais les événements déjà passés et la désactivation interrompt immédiatement une phrase en cours.
+
+Cette fonction utilise les API natives Web Audio et SpeechSynthesis. Elle se dégrade sans bloquer le chronomètre lorsqu’une API est absente ou désactivée par le navigateur.
