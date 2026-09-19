@@ -54,7 +54,7 @@ La logique de calcul est isolée dans `src/domain/meeting.js`. Les composants ne
 5. Une pause peut être lancée à tout moment ; chaque seconde écoulée est redistribuée en direct sur les sujets restants.
 6. Le tableau de bord, Mister Time et le graphe radial sont dérivés du même état.
 
-Les entrées sont bornées à 1–480 minutes et 2–100 sujets. Trois formats prédéfinis permettent aussi de préparer instantanément une réunion de 60, 90 ou 120 minutes.
+Les entrées sont bornées à 1–480 minutes et 1–100 sujets. Une durée de pause prévue peut être ajoutée à l’heure de fin. Trois formats prédéfinis permettent aussi de préparer instantanément une réunion de 60, 90 ou 120 minutes.
 
 ## Déploiement Vercel
 

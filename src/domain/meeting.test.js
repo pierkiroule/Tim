@@ -5,13 +5,14 @@ import {
   formatDelta,
   formatTime,
   liveAllocation,
+  meetingRemaining,
   normalizeConfig,
   tickMeeting,
 } from './meeting'
 
 describe('meeting domain', () => {
   it('normalizes unsafe configuration values', () => {
-    expect(normalizeConfig(0, 101)).toEqual({ duration: 1, subjectCount: 100 })
+    expect(normalizeConfig(0, 101, 999)).toEqual({ duration: 1, subjectCount: 100, plannedPauseMinutes: 480 })
   })
 
   it('starts with a one-minute meeting split into six subjects', () => {
@@ -19,6 +20,10 @@ describe('meeting domain', () => {
     expect(meeting.duration).toBe(1)
     expect(meeting.subjectCount).toBe(6)
     expect(meeting.subjects).toHaveLength(6)
+  })
+
+  it('accepts a meeting with only one subject', () => {
+    expect(createMeeting(10, 1).subjects).toHaveLength(1)
   })
 
   it('allocates the budget equally', () => {
@@ -31,6 +36,14 @@ describe('meeting domain', () => {
     const paused = tickMeeting(meeting, 50)
     expect(paused.pauseSpent).toBe(50)
     expect(paused.subjects.map((subject) => subject.allocation)).toEqual([710, 710, 710, 710, 710])
+  })
+
+  it('does not penalize subjects while the planned pause allowance remains', () => {
+    const meeting = { ...createMeeting(60, 5, 10), started: true, paused: true }
+    const paused = tickMeeting(meeting, 50)
+    expect(paused.pauseSpent).toBe(50)
+    expect(paused.subjects.map((subject) => subject.allocation)).toEqual([720, 720, 720, 720, 720])
+    expect(meetingRemaining(paused)).toBe(4150)
   })
 
   it('ticks only while running', () => {

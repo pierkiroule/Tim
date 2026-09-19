@@ -20,7 +20,9 @@ export function Assistant({ meeting, remaining }) {
   const detail = meeting.finished
     ? `${meeting.subjectCount} sujets parcourus ensemble.`
     : meeting.paused
-      ? `${formatTime(meeting.pauseSpent)} de pause déjà redistribuée.`
+      ? meeting.pauseSpent <= meeting.pauseAllowance
+        ? `${formatTime(meeting.pauseAllowance - meeting.pauseSpent)} de pause prévue encore disponible.`
+        : `${formatTime(meeting.pauseSpent - meeting.pauseAllowance)} au-delà de la pause prévue, redistribuée en direct.`
       : !meeting.started
       ? 'Je veille au rythme et redistribue chaque minute gagnée.'
       : remaining < 0

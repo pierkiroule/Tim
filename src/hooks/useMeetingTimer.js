@@ -17,11 +17,11 @@ export function useMeetingTimer() {
     return () => window.clearInterval(timer)
   }, [])
 
-  const configure = useCallback((duration, subjectCount) => {
+  const configure = useCallback((duration, subjectCount, plannedPauseMinutes) => {
     setMeeting((current) => {
       if (current.started) return current
-      const config = normalizeConfig(duration, subjectCount)
-      return createMeeting(config.duration, config.subjectCount)
+      const config = normalizeConfig(duration, subjectCount, plannedPauseMinutes)
+      return createMeeting(config.duration, config.subjectCount, config.plannedPauseMinutes)
     })
   }, [])
 
@@ -48,7 +48,7 @@ export function useMeetingTimer() {
 
   const reset = useCallback(() => {
     lastTick.current = performance.now()
-    setMeeting((current) => createMeeting(current.duration, current.subjectCount))
+    setMeeting((current) => createMeeting(current.duration, current.subjectCount, current.plannedPauseMinutes))
     setAnimationKey((key) => key + 1)
     setIntroKey((key) => key + 1)
   }, [])
