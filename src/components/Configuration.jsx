@@ -1,21 +1,42 @@
-import { MAX_DURATION, MAX_PLANNED_PAUSE, MAX_SUBJECTS, MIN_DURATION, MIN_PLANNED_PAUSE, MIN_SUBJECTS } from '../domain/meeting'
+import { useEffect, useState } from 'react'
+import { MAX_PLANNED_PAUSE, MAX_SUBJECTS, MIN_PLANNED_PAUSE, MIN_SUBJECTS } from '../domain/meeting'
 import { Stepper } from './Stepper'
 
+function timeValue(timestamp) {
+  const date = new Date(timestamp)
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+function timestampForTime(value, now = new Date()) {
+  const [hours, minutes] = value.split(':').map(Number)
+  const target = new Date(now)
+  target.setHours(hours, minutes, 0, 0)
+  if (target.getTime() <= now.getTime()) target.setDate(target.getDate() + 1)
+  return target.getTime()
+}
+
 export function Configuration({ meeting, onConfigure }) {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+  const update = (endAt = meeting.endAt, count = meeting.subjectCount, pause = meeting.plannedPauseMinutes) => onConfigure(endAt, count, pause)
+
   return (
     <section className="configuration" aria-label="Configuration de la réunion">
       <div className="section-heading">
-        <div><span className="eyebrow">Avant de commencer</span><h1>Cadrez votre réunion.</h1></div>
-        <p>Un temps clair pour chaque sujet, puis une redistribution automatique au fil des échanges.</p>
+        <div><span className="eyebrow">Cadrage en temps réel</span><h1>Cadrez votre réunion.</h1></div>
+        <p>Il est <strong>{timeValue(now)}</strong> et vous souhaitez terminer à <strong>{timeValue(meeting.endAt)}</strong>. Modifiez le cadrage à tout moment : tout est recalculé instantanément.</p>
       </div>
       <div className="config-grid">
-        <Stepper id="duration" label="Durée des échanges" value={meeting.duration} unit="minutes · hors pause" min={MIN_DURATION} max={MAX_DURATION} step={1} disabled={meeting.started} onChange={(duration) => onConfigure(duration, meeting.subjectCount, meeting.plannedPauseMinutes)} />
-        <Stepper id="subjects" label="Nombre de sujets" value={meeting.subjectCount} unit="de 1 à 100 sujets" min={MIN_SUBJECTS} max={MAX_SUBJECTS} step={1} disabled={meeting.started} onChange={(count) => onConfigure(meeting.duration, count, meeting.plannedPauseMinutes)} />
-        <Stepper id="planned-pause" label="Pause prévue" value={meeting.plannedPauseMinutes} unit="minutes · ajoutées à l’heure de fin" min={MIN_PLANNED_PAUSE} max={MAX_PLANNED_PAUSE} step={1} disabled={meeting.started} onChange={(pause) => onConfigure(meeting.duration, meeting.subjectCount, pause)} />
+        <div className="field"><label htmlFor="end-time">Heure de fin</label><input className="time-input" id="end-time" type="time" value={timeValue(meeting.endAt)} disabled={meeting.finished} onChange={(event) => event.target.value && update(timestampForTime(event.target.value))} /><span className="field-unit">aujourd’hui, ou demain si l’heure est passée</span></div>
+        <Stepper id="subjects" label="Nombre de sujets" value={meeting.subjectCount} unit={`${meeting.subjects.filter((subject) => subject.done).length} déjà terminé(s) · 100 maximum`} min={Math.max(MIN_SUBJECTS, meeting.subjects.filter((subject) => subject.done).length + (meeting.finished ? 0 : 1))} max={MAX_SUBJECTS} step={1} disabled={meeting.finished} onChange={(count) => update(meeting.endAt, count)} />
+        <Stepper id="planned-pause" label="Pause prévue" value={meeting.plannedPauseMinutes} unit="minutes · comprise dans l’heure de fin" min={MIN_PLANNED_PAUSE} max={MAX_PLANNED_PAUSE} step={1} disabled={meeting.finished} onChange={(pause) => update(meeting.endAt, meeting.subjectCount, pause)} />
       </div>
       <div className="demo-config">
-        <div><span className="eyebrow">Pour découvrir MikadoTimer</span><strong>Tester un cadrage court</strong><small>3 minutes · 10 sujets · 1 minute de pause</small></div>
-        <button className="button button--demo" type="button" disabled={meeting.started} onClick={() => onConfigure(3, 10, 1)}>Utiliser le cadrage démo</button>
+        <div><span className="eyebrow">Pour découvrir MikadoTimer</span><strong>Tester un cadrage court</strong><small>Fin dans 4 minutes · 10 sujets · 1 minute de pause</small></div>
+        <button className="button button--demo" type="button" disabled={meeting.finished} onClick={() => onConfigure(Date.now() + 4 * 60 * 1000, 10, 1)}>Utiliser le cadrage démo</button>
       </div>
     </section>
   )

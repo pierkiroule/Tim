@@ -7,6 +7,7 @@ import {
   liveAllocation,
   meetingRemaining,
   normalizeConfig,
+  reframeMeeting,
   tickMeeting,
 } from './meeting'
 
@@ -74,6 +75,32 @@ describe('meeting domain', () => {
     expect(closeActiveSubject(idle)).toBe(idle)
     const paused = { ...idle, started: true, running: false, paused: true }
     expect(closeActiveSubject(paused)).toBe(paused)
+  })
+
+  it('reframes the remaining meeting from a new end time', () => {
+    const now = 1_000_000
+    let meeting = { ...createMeeting(30, 3, 5), started: true, running: true }
+    meeting = tickMeeting(meeting, 120)
+    const reframed = reframeMeeting(meeting, now + 20 * 60 * 1000, 4, 5, now)
+    expect(reframed.subjects).toHaveLength(4)
+    expect(meetingRemaining(reframed)).toBe(1200)
+    expect(reframed.subjects[0].allocation - reframed.subjects[0].spent).toBe(225)
+    expect(reframed.subjects[3].allocation).toBe(225)
+  })
+
+  it('never removes completed subjects during a live reframing', () => {
+    let meeting = { ...createMeeting(30, 3), started: true, running: true }
+    meeting = closeActiveSubject(meeting)
+    const reframed = reframeMeeting(meeting, Date.now() + 600_000, 1, 0)
+    expect(reframed.subjectCount).toBe(2)
+    expect(reframed.subjects[0].done).toBe(true)
+  })
+
+  it('keeps the requested end time after reducing an already exceeded pause', () => {
+    const now = 2_000_000
+    const meeting = { ...createMeeting(30, 3, 10), started: true, paused: true, pauseSpent: 600 }
+    const reframed = reframeMeeting(meeting, now + 15 * 60 * 1000, 3, 5, now)
+    expect(meetingRemaining(reframed)).toBe(900)
   })
 
   it('redistributes time saved by a completed subject', () => {

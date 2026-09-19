@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { closeActiveSubject, createMeeting, normalizeConfig, tickMeeting } from '../domain/meeting'
+import { closeActiveSubject, createMeeting, reframeMeeting, tickMeeting } from '../domain/meeting'
 
 const STORAGE_KEY = 'mikadotimer:meeting:v1'
 
@@ -13,6 +13,7 @@ function restoreMeeting() {
       && meeting.activeIndex >= 0
       && meeting.activeIndex < meeting.subjects.length
     if (!valid) return createMeeting()
+    if (!Number.isFinite(meeting.endAt)) meeting.endAt = Date.now() + Math.max(0, meeting.totalSeconds + meeting.pauseAllowance - meeting.pauseSpent - meeting.subjects.reduce((sum, subject) => sum + subject.spent, 0)) * 1000
     const elapsed = meeting.running && !meeting.finished
       ? Math.max(0, (Date.now() - Number(saved.savedAt || Date.now())) / 1000)
       : 0
@@ -46,19 +47,15 @@ export function useMeetingTimer() {
     }
   }, [meeting])
 
-  const configure = useCallback((duration, subjectCount, plannedPauseMinutes) => {
-    setMeeting((current) => {
-      if (current.started) return current
-      const config = normalizeConfig(duration, subjectCount, plannedPauseMinutes)
-      return createMeeting(config.duration, config.subjectCount, config.plannedPauseMinutes)
-    })
+  const configure = useCallback((endAt, subjectCount, plannedPauseMinutes) => {
+    setMeeting((current) => reframeMeeting(current, endAt, subjectCount, plannedPauseMinutes))
   }, [])
 
   const start = useCallback(() => {
     lastTick.current = performance.now()
     setMeeting((current) => {
       if (current.started || current.finished) return current
-      return { ...current, started: true, running: true }
+      return { ...reframeMeeting(current, current.endAt, current.subjectCount, current.plannedPauseMinutes), started: true, running: true }
     })
     setAnimationKey((key) => key + 1)
   }, [])
