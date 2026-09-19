@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { closeActiveSubject, createMeeting, reframeMeeting, tickMeeting } from '../domain/meeting'
+import { advanceMeetingTo } from '../domain/clock'
+import { useScreenWakeLock } from './useScreenWakeLock'
 
 const STORAGE_KEY = 'mikadotimer:meeting:v1'
 
@@ -27,16 +29,41 @@ export function useMeetingTimer() {
   const [meeting, setMeeting] = useState(restoreMeeting)
   const [animationKey, setAnimationKey] = useState(0)
   const [introKey, setIntroKey] = useState(0)
-  const lastTick = useRef(performance.now())
+  const lastTick = useRef(Date.now())
+  const meetingRef = useRef(meeting)
+
+  meetingRef.current = meeting
+  useScreenWakeLock(meeting.started && !meeting.finished)
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      const now = performance.now()
-      const elapsed = (now - lastTick.current) / 1000
+    const advance = () => {
+      const now = Date.now()
+      setMeeting((current) => {
+        const advanced = advanceMeetingTo(current, lastTick.current, now)
+        meetingRef.current = advanced
+        return advanced
+      })
       lastTick.current = now
-      setMeeting((current) => tickMeeting(current, elapsed))
-    }, 200)
-    return () => window.clearInterval(timer)
+    }
+    const persistLatest = () => {
+      advance()
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ meeting: meetingRef.current, savedAt: Date.now() }))
+      } catch {
+        // La sauvegarde de sortie est facultative.
+      }
+    }
+    const handleVisibilityChange = () => advance()
+    const timer = window.setInterval(advance, 200)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pageshow', advance)
+    window.addEventListener('pagehide', persistLatest)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pageshow', advance)
+      window.removeEventListener('pagehide', persistLatest)
+    }
   }, [])
 
   useEffect(() => {
@@ -52,7 +79,7 @@ export function useMeetingTimer() {
   }, [])
 
   const start = useCallback(() => {
-    lastTick.current = performance.now()
+    lastTick.current = Date.now()
     setMeeting((current) => {
       if (current.started || current.finished) return current
       return { ...reframeMeeting(current, current.endAt, current.subjectCount, current.plannedPauseMinutes), started: true, running: true }
@@ -61,19 +88,19 @@ export function useMeetingTimer() {
   }, [])
 
   const next = useCallback(() => {
-    lastTick.current = performance.now()
+    lastTick.current = Date.now()
     setMeeting((current) => closeActiveSubject(current))
   }, [])
 
   const togglePause = useCallback(() => {
-    lastTick.current = performance.now()
+    lastTick.current = Date.now()
     setMeeting((current) => current.started && !current.finished
       ? { ...current, paused: !current.paused, running: current.paused }
       : current)
   }, [])
 
   const reset = useCallback(() => {
-    lastTick.current = performance.now()
+    lastTick.current = Date.now()
     setMeeting((current) => createMeeting(current.duration, current.subjectCount, current.plannedPauseMinutes))
     setAnimationKey((key) => key + 1)
     setIntroKey((key) => key + 1)
