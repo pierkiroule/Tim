@@ -50,7 +50,7 @@ La logique de calcul est isolée dans `src/domain/meeting.js`. Les composants ne
 ## Fonctionnement
 
 1. La durée totale est divisée à parts égales entre les sujets.
-2. Le chronomètre utilise `performance.now()` pour mesurer le temps écoulé.
+2. Le chronomètre s'appuie sur l'horloge réelle et rattrape immédiatement le temps écoulé après une mise en veille, un changement d'onglet ou la restauration de la page.
 3. Un sujet terminé en avance libère du temps pour chacun des sujets suivants.
 4. Un dépassement réduit en direct leur budget disponible.
 5. Une pause peut être lancée à tout moment ; chaque seconde écoulée est redistribuée en direct sur les sujets restants.
@@ -90,3 +90,9 @@ Le bouton haut-parleur de l’en-tête active ou désactive ensemble les signatu
 Quatre événements seulement sont annoncés : le démarrage de la réunion, l’arrivée à 80 % du temps d’un sujet, le début d’une pause et la reprise (avec le nombre de situations et leur temps disponible). L’activation ne rejoue jamais les événements déjà passés et la désactivation interrompt immédiatement une phrase en cours.
 
 Cette fonction utilise les API natives Web Audio et SpeechSynthesis. Elle se dégrade sans bloquer le chronomètre lorsqu’une API est absente ou désactivée par le navigateur.
+
+## Téléphone, veille et arrière-plan
+
+Pendant une réunion en cours, pauses comprises, l'application demande au navigateur de garder l'écran éveillé lorsque l'API Screen Wake Lock est disponible. Le verrou est relâché à la fin de la réunion, puis redemandé automatiquement au retour dans l'application si le navigateur l'a libéré pendant un passage en arrière-plan.
+
+Les navigateurs mobiles pouvant suspendre les minuteurs JavaScript quand une autre application ou un autre onglet passe au premier plan, MikadoTimer ne dépend pas de la fréquence de rafraîchissement : au retour, il calcule le temps réellement écoulé avec l'horloge du téléphone. L'état courant est également sauvegardé localement et restauré si le système décharge complètement la page. Les restrictions du système peuvent toujours éteindre l'écran, mais elles ne figent pas le décompte.
