@@ -7,6 +7,7 @@ import {
   liveAllocation,
   meetingRemaining,
   normalizeConfig,
+  reframeMeeting,
   tickMeeting,
 } from './meeting'
 
@@ -63,8 +64,47 @@ describe('meeting domain', () => {
     expect(running.subjects[0].spent).toBe(5)
   })
 
+  it('ignores invalid elapsed time instead of corrupting the timer', () => {
+    const meeting = { ...createMeeting(30, 3), running: true }
+    expect(tickMeeting(meeting, Number.NaN)).toBe(meeting)
+    expect(tickMeeting(meeting, Number.POSITIVE_INFINITY)).toBe(meeting)
+  })
+
+  it('cannot close a subject before start or during a pause', () => {
+    const idle = createMeeting(30, 3)
+    expect(closeActiveSubject(idle)).toBe(idle)
+    const paused = { ...idle, started: true, running: false, paused: true }
+    expect(closeActiveSubject(paused)).toBe(paused)
+  })
+
+  it('reframes the remaining meeting from a new end time', () => {
+    const now = 1_000_000
+    let meeting = { ...createMeeting(30, 3, 5), started: true, running: true }
+    meeting = tickMeeting(meeting, 120)
+    const reframed = reframeMeeting(meeting, now + 20 * 60 * 1000, 4, 5, now)
+    expect(reframed.subjects).toHaveLength(4)
+    expect(meetingRemaining(reframed)).toBe(1200)
+    expect(reframed.subjects[0].allocation - reframed.subjects[0].spent).toBe(225)
+    expect(reframed.subjects[3].allocation).toBe(225)
+  })
+
+  it('never removes completed subjects during a live reframing', () => {
+    let meeting = { ...createMeeting(30, 3), started: true, running: true }
+    meeting = closeActiveSubject(meeting)
+    const reframed = reframeMeeting(meeting, Date.now() + 600_000, 1, 0)
+    expect(reframed.subjectCount).toBe(2)
+    expect(reframed.subjects[0].done).toBe(true)
+  })
+
+  it('keeps the requested end time after reducing an already exceeded pause', () => {
+    const now = 2_000_000
+    const meeting = { ...createMeeting(30, 3, 10), started: true, paused: true, pauseSpent: 600 }
+    const reframed = reframeMeeting(meeting, now + 15 * 60 * 1000, 3, 5, now)
+    expect(meetingRemaining(reframed)).toBe(900)
+  })
+
   it('redistributes time saved by a completed subject', () => {
-    let meeting = createMeeting(30, 3)
+    let meeting = { ...createMeeting(30, 3), started: true, running: true }
     meeting = { ...meeting, subjects: meeting.subjects.map((subject, i) => i === 0 ? { ...subject, spent: 300 } : subject) }
     meeting = closeActiveSubject(meeting)
     expect(meeting.subjects[1].allocation).toBe(750)
