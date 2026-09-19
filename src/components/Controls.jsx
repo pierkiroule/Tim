@@ -20,7 +20,7 @@ export function Controls({ meeting, onStart, onNext, onReset }) {
       {!meeting.started && <button className="button button--secondary" type="button" onClick={onStart}>▶  Lancer la réunion</button>}
       {!meeting.finished && <button className={`button button--primary ${meeting.started ? 'button--wide' : ''}`} type="button" onClick={onNext} disabled={!meeting.started}>{meeting.activeIndex === meeting.subjects.length - 1 ? 'Terminer la réunion  ✓' : 'Sujet suivant  →'}</button>}
       {meeting.finished && <button className="button button--primary button--wide" type="button" onClick={onReset}>Préparer une nouvelle réunion</button>}
-      {!meeting.finished && <button className={`reset-button ${confirmReset ? 'reset-button--confirm' : ''}`} type="button" onClick={reset}>{confirmReset ? 'Confirmer la réinitialisation' : 'Réinitialiser'}</button>}
+      {!meeting.finished && <button className={`reset-button ${confirmReset ? 'reset-button--confirm' : ''}`} type="button" onClick={reset}>{confirmReset ? 'CONFIRMER L’EFFACEMENT' : 'EFFACER ET RÉINITIALISER MIKADOTIMER'}</button>}
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { closeActiveSubject, createMeeting, normalizeConfig, tickMeeting } from 
 export function useMeetingTimer() {
   const [meeting, setMeeting] = useState(() => createMeeting())
   const [animationKey, setAnimationKey] = useState(0)
+  const [introKey, setIntroKey] = useState(0)
   const lastTick = useRef(performance.now())
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export function useMeetingTimer() {
     lastTick.current = performance.now()
     setMeeting((current) => createMeeting(current.duration, current.subjectCount))
     setAnimationKey((key) => key + 1)
+    setIntroKey((key) => key + 1)
   }, [])
 
   const rename = useCallback((title) => {
@@ -53,5 +55,5 @@ export function useMeetingTimer() {
     }))
   }, [])
 
-  return { meeting, animationKey, configure, start, next, reset, rename }
+  return { meeting, animationKey, introKey, configure, start, next, reset, rename }
 }

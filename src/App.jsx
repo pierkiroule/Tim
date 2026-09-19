@@ -17,7 +17,7 @@ function statusFor(meeting, remaining) {
 }
 
 export default function App() {
-  const { meeting, animationKey, configure, start, next, reset, rename } = useMeetingTimer()
+  const { meeting, animationKey, introKey, configure, start, next, reset, rename } = useMeetingTimer()
   const remaining = activeRemaining(meeting)
   const totalRemaining = meetingRemaining(meeting)
   const impact = impactPerFuture(meeting)
@@ -35,7 +35,7 @@ export default function App() {
 
   return (
     <div className="app-shell" id="top">
-      <MikadoIntro />
+      <MikadoIntro key={introKey} />
       <Header status={status.label} tone={status.tone} />
       <main>
         <Configuration meeting={meeting} onConfigure={configure} />
