@@ -44,6 +44,9 @@ function Stick({ meeting, subject, index, active }) {
 export function SolarTimeline({ meeting, remaining, onRename }) {
   const active = meeting.subjects[meeting.activeIndex]
   const progress = active ? Math.min(100, Math.round((active.spent / Math.max(1, active.allocation)) * 100)) : 100
+  const pauseBalance = meeting.pauseAllowance - meeting.pauseSpent
+  const pauseProgress = meeting.pauseAllowance > 0 ? Math.min(1, meeting.pauseSpent / meeting.pauseAllowance) : 1
+  const pauseOverrun = meeting.paused && pauseBalance < 0
   return (
     <section className="timeline-card" aria-label="Répartition visuelle du temps">
       <div className="timeline-head">
@@ -61,8 +64,9 @@ export function SolarTimeline({ meeting, remaining, onRename }) {
         <div className="hub">
           <span>{meeting.finished ? 'Réunion terminée' : meeting.paused ? 'Pause en cours' : `Sujet ${meeting.activeIndex + 1}`}</span>
           {!meeting.finished && !meeting.paused && <input value={active?.title ?? ''} onChange={(event) => onRename(event.target.value)} onBlur={(event) => !event.target.value.trim() && onRename(`Sujet ${meeting.activeIndex + 1}`)} aria-label="Titre du sujet actif" maxLength="50" />}
-          <strong className={remaining < 0 ? 'negative' : ''}>{meeting.finished ? '✓' : formatTime(remaining, { signed: true })}</strong>
-          <small>{meeting.finished ? 'Tous les sujets sont traités' : meeting.paused ? 'Le temps est redistribué en direct' : `${progress}% du budget utilisé`}</small>
+          {meeting.paused && <div className={`pause-meter ${pauseOverrun ? 'pause-meter--overrun' : ''}`} style={{ '--pause-angle': `${pauseProgress * 360}deg` }} aria-label={pauseOverrun ? `Pause dépassée de ${formatTime(Math.abs(pauseBalance))}` : `${formatTime(Math.max(0, pauseBalance))} de pause prévue restante`} role="img"><span>Ⅱ</span></div>}
+          <strong className={(meeting.paused ? pauseBalance : remaining) < 0 ? 'negative' : ''}>{meeting.finished ? '✓' : formatTime(meeting.paused ? pauseBalance : remaining, { signed: true })}</strong>
+          <small>{meeting.finished ? 'Tous les sujets sont traités' : meeting.paused ? pauseOverrun ? 'Dépassement redistribué en direct' : 'Pause prévue restante' : `${progress}% du budget utilisé`}</small>
         </div>
       </div>
     </section>

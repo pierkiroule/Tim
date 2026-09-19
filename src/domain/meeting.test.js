@@ -46,6 +46,14 @@ describe('meeting domain', () => {
     expect(meetingRemaining(paused)).toBe(4150)
   })
 
+  it('redistributes only the part exceeding the planned pause', () => {
+    const meeting = { ...createMeeting(60, 5, 1), started: true, paused: true, pauseSpent: 50 }
+    const paused = tickMeeting(meeting, 20)
+    expect(paused.pauseSpent).toBe(70)
+    expect(paused.subjects.map((subject) => subject.allocation)).toEqual([718, 718, 718, 718, 718])
+    expect(meetingRemaining(paused)).toBe(3590)
+  })
+
   it('ticks only while running', () => {
     const idle = createMeeting(30, 3)
     expect(tickMeeting(idle, 5)).toBe(idle)
