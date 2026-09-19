@@ -17,11 +17,11 @@ export function useMeetingTimer() {
     return () => window.clearInterval(timer)
   }, [])
 
-  const configure = useCallback((duration, subjectCount, pauseMinutes, pauseAfter) => {
+  const configure = useCallback((duration, subjectCount) => {
     setMeeting((current) => {
       if (current.started) return current
-      const config = normalizeConfig(duration, subjectCount, pauseMinutes, pauseAfter)
-      return createMeeting(config.duration, config.subjectCount, config.pauseMinutes, config.pauseAfter)
+      const config = normalizeConfig(duration, subjectCount)
+      return createMeeting(config.duration, config.subjectCount)
     })
   }, [])
 
@@ -39,9 +39,16 @@ export function useMeetingTimer() {
     setMeeting((current) => closeActiveSubject(current))
   }, [])
 
+  const togglePause = useCallback(() => {
+    lastTick.current = performance.now()
+    setMeeting((current) => current.started && !current.finished
+      ? { ...current, paused: !current.paused, running: current.paused }
+      : current)
+  }, [])
+
   const reset = useCallback(() => {
     lastTick.current = performance.now()
-    setMeeting((current) => createMeeting(current.duration, current.subjectCount, current.pauseMinutes, current.pauseAfter))
+    setMeeting((current) => createMeeting(current.duration, current.subjectCount))
     setAnimationKey((key) => key + 1)
     setIntroKey((key) => key + 1)
   }, [])
@@ -55,9 +62,5 @@ export function useMeetingTimer() {
     }))
   }, [])
 
-  const movePause = useCallback((pauseAfter) => {
-    setMeeting((current) => current.started ? current : { ...current, pauseAfter: Math.max(0, Math.min(current.subjectCount - 1, pauseAfter)) })
-  }, [])
-
-  return { meeting, animationKey, introKey, configure, start, next, reset, rename, movePause }
+  return { meeting, animationKey, introKey, configure, start, togglePause, next, reset, rename }
 }

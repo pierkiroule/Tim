@@ -7,18 +7,21 @@ const stateLabels = {
   half: 'À mi-parcours',
   closing: 'On conclut',
   late: 'Cap sur l’essentiel',
+  paused: 'Pause en cours',
   finished: 'Mission accomplie',
 }
 
 export function Assistant({ meeting, remaining }) {
   const state = getAssistantState(meeting, remaining)
   const message = messages[state][meeting.activeIndex % messages[state].length]
-  const tone = ['late'].includes(state) ? 'alert' : ['half', 'closing'].includes(state) ? 'watch' : state === 'finished' ? 'success' : 'calm'
+  const tone = ['late'].includes(state) ? 'alert' : ['half', 'closing', 'paused'].includes(state) ? 'watch' : state === 'finished' ? 'success' : 'calm'
   const active = meeting.subjects[meeting.activeIndex]
   const progress = meeting.finished ? 100 : !meeting.started ? 0 : Math.min(100, Math.round(((active?.spent ?? 0) / Math.max(1, active?.allocation ?? 1)) * 100))
   const detail = meeting.finished
     ? `${meeting.subjectCount} sujets parcourus ensemble.`
-    : !meeting.started
+    : meeting.paused
+      ? `${formatTime(meeting.pauseSpent)} de pause déjà redistribuée.`
+      : !meeting.started
       ? 'Je veille au rythme et redistribue chaque minute gagnée.'
       : remaining < 0
         ? `${formatTime(remaining, { signed: true })} au-delà du temps prévu.`

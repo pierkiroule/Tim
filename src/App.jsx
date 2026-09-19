@@ -12,12 +12,13 @@ import { useMeetingTimer } from './hooks/useMeetingTimer'
 function statusFor(meeting, remaining) {
   if (meeting.finished) return { label: 'Terminée', tone: 'success' }
   if (!meeting.started) return { label: 'Prête', tone: 'idle' }
+  if (meeting.paused) return { label: 'En pause', tone: 'paused' }
   if (remaining < 0) return { label: 'Dépassement', tone: 'alert' }
   return { label: 'En cours', tone: 'running' }
 }
 
 export default function App() {
-  const { meeting, animationKey, introKey, configure, start, next, reset, rename, movePause } = useMeetingTimer()
+  const { meeting, animationKey, introKey, configure, start, togglePause, next, reset, rename } = useMeetingTimer()
   const remaining = activeRemaining(meeting)
   const totalRemaining = meetingRemaining(meeting)
   const impact = impactPerFuture(meeting)
@@ -26,12 +27,12 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.target.matches('input, button')) return
-      if (event.code === 'Space' && !meeting.started) { event.preventDefault(); start() }
-      if (event.key === 'Enter' && meeting.started && !meeting.finished) next()
+      if (event.code === 'Space') { event.preventDefault(); meeting.started ? togglePause() : start() }
+      if (event.key === 'Enter' && meeting.started && !meeting.paused && !meeting.finished) next()
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [meeting.finished, meeting.started, next, start])
+  }, [meeting.finished, meeting.paused, meeting.started, next, start, togglePause])
 
   return (
     <div className="app-shell" id="top">
@@ -41,10 +42,10 @@ export default function App() {
         <Configuration meeting={meeting} onConfigure={configure} />
         <Dashboard meeting={meeting} meetingTime={totalRemaining} subjectTime={remaining} impact={impact} />
         <Assistant meeting={meeting} remaining={remaining} />
-        <SolarTimeline key={animationKey} meeting={meeting} remaining={remaining} onRename={rename} onMovePause={movePause} />
-        <Controls meeting={meeting} onStart={start} onNext={next} onReset={reset} />
+        <SolarTimeline key={animationKey} meeting={meeting} remaining={remaining} onRename={rename} />
+        <Controls meeting={meeting} onStart={start} onTogglePause={togglePause} onNext={next} onReset={reset} />
       </main>
-      <footer><span>MikadoTimer</span><span>Le temps partagé, sans perdre le fil.</span><span className="shortcuts">Espace · lancer &nbsp; Entrée · suivant</span></footer>
+      <footer><span>MikadoTimer</span><span>Le temps partagé, sans perdre le fil.</span><span className="shortcuts">Espace · pause / reprise &nbsp; Entrée · suivant</span></footer>
     </div>
   )
 }

@@ -11,7 +11,7 @@ import {
 
 describe('meeting domain', () => {
   it('normalizes unsafe configuration values', () => {
-    expect(normalizeConfig(0, 101, 50, 200)).toEqual({ duration: 1, subjectCount: 100, pauseMinutes: 0, pauseAfter: 99 })
+    expect(normalizeConfig(0, 101)).toEqual({ duration: 1, subjectCount: 100 })
   })
 
   it('starts with a one-minute meeting split into six subjects', () => {
@@ -26,12 +26,11 @@ describe('meeting domain', () => {
     expect(meeting.subjects.map((subject) => subject.allocation)).toEqual([600, 600, 600])
   })
 
-  it('subtracts the configured pause from subject allocations', () => {
-    const meeting = createMeeting(60, 5, 10, 2)
-    expect(meeting.pauseSeconds).toBe(600)
-    expect(meeting.totalSeconds).toBe(3000)
-    expect(meeting.subjects.map((subject) => subject.allocation)).toEqual([600, 600, 600, 600, 600])
-    expect(meeting.pauseAfter).toBe(2)
+  it('subtracts elapsed pause time from all remaining subjects', () => {
+    const meeting = { ...createMeeting(60, 5), started: true, paused: true }
+    const paused = tickMeeting(meeting, 50)
+    expect(paused.pauseSpent).toBe(50)
+    expect(paused.subjects.map((subject) => subject.allocation)).toEqual([710, 710, 710, 710, 710])
   })
 
   it('ticks only while running', () => {
