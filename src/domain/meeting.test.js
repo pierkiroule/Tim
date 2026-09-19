@@ -11,7 +11,14 @@ import {
 
 describe('meeting domain', () => {
   it('normalizes unsafe configuration values', () => {
-    expect(normalizeConfig(0, 99)).toEqual({ duration: 5, subjectCount: 24 })
+    expect(normalizeConfig(0, 101)).toEqual({ duration: 1, subjectCount: 100 })
+  })
+
+  it('starts with a one-minute meeting split into six subjects', () => {
+    const meeting = createMeeting()
+    expect(meeting.duration).toBe(1)
+    expect(meeting.subjectCount).toBe(6)
+    expect(meeting.subjects).toHaveLength(6)
   })
 
   it('allocates the budget equally', () => {

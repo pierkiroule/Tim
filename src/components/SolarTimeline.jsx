@@ -25,14 +25,15 @@ function Stick({ meeting, subject, index, active }) {
   const badge = point(MAX_RADIUS + 16, angle)
   const delta = subject.done ? subject.result : liveAllocation(meeting, index) - meeting.initialShare
   const state = subject.done ? 'done' : active ? 'active' : delta > 1 ? 'gain' : delta < -1 ? 'loss' : 'planned'
+  const compact = meeting.subjects.length > 24
 
   return (
-    <g className={`stick stick--${state}`} style={{ '--stick-index': index }}>
+    <g className={`stick stick--${state} ${compact ? 'stick--compact' : ''}`} style={{ '--stick-index': index }}>
       <line className="stick-track" x1={start.x} y1={start.y} x2={cap.x} y2={cap.y} />
       <line className="stick-value" x1={start.x} y1={start.y} x2={end.x} y2={end.y} />
       <circle className="stick-plan" cx={plan.x} cy={plan.y} r="2.5" />
-      <circle className="stick-badge" cx={badge.x} cy={badge.y} r="11" />
-      <text className="stick-label" x={badge.x} y={badge.y + 0.5}>{subject.done ? '✓' : index + 1}</text>
+      <circle className="stick-badge" cx={badge.x} cy={badge.y} r={compact ? 3 : 11} />
+      {!compact && <text className="stick-label" x={badge.x} y={badge.y + 0.5}>{subject.done ? '✓' : index + 1}</text>}
       {meeting.subjects.length <= 12 && !active && Math.abs(delta) >= 1 && (
         <text className="stick-delta" x={badge.x} y={badge.y + (badge.y < CENTER ? -17 : 20)}>{formatDelta(delta)}</text>
       )}

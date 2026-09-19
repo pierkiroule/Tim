@@ -53,7 +53,7 @@ La logique de calcul est isolée dans `src/domain/meeting.js`. Les composants ne
 4. Un dépassement réduit en direct leur budget disponible.
 5. Le tableau de bord, Mister Timer et le graphe radial sont dérivés du même état.
 
-Les entrées sont bornées à 5–480 minutes et 1–24 sujets afin de garantir un rendu lisible et stable.
+Les entrées sont bornées à 1–480 minutes et 2–100 sujets. Trois formats prédéfinis permettent aussi de préparer instantanément une réunion de 60, 90 ou 120 minutes.
 
 ## Déploiement Vercel
 

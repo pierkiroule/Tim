@@ -1,9 +1,9 @@
-export const DEFAULT_DURATION = 60
-export const DEFAULT_SUBJECT_COUNT = 10
-export const MIN_DURATION = 5
+export const DEFAULT_DURATION = 1
+export const DEFAULT_SUBJECT_COUNT = 6
+export const MIN_DURATION = 1
 export const MAX_DURATION = 480
-export const MIN_SUBJECTS = 1
-export const MAX_SUBJECTS = 24
+export const MIN_SUBJECTS = 2
+export const MAX_SUBJECTS = 100
 
 export function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value))
