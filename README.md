@@ -77,5 +77,5 @@ Aucune variable d'environnement n'est nécessaire.
 - statut et assistant annoncés aux technologies d'assistance ;
 - description du graphe SVG ;
 - navigation clavier et indicateurs de focus visibles ;
-- raccourcis `Espace` pour lecture/pause et `Entrée` pour le sujet suivant ;
+- raccourcis `Espace` pour lancer la réunion et `Entrée` pour le sujet suivant ;
 - animations réduites lorsque `prefers-reduced-motion` est activé.

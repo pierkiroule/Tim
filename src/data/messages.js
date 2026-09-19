@@ -4,14 +4,12 @@ export const messages = {
   half: ['Mi-chemin. Ce sujet a encore de quoi respirer.', 'La moitié est passée, tout va bien.'],
   closing: ['Dernière ligne droite. Gardons l’essentiel.', 'Ça sent la conclusion…'],
   late: ['On grignote la suite. On atterrit ?', 'Le retard pointe son nez.'],
-  paused: ['Pause en cours. Le temps est suspendu.'],
   finished: ['Tous les sujets sont bouclés. Bien joué !'],
 }
 
 export function getAssistantState(meeting, remaining) {
   if (meeting.finished) return 'finished'
   if (!meeting.started) return 'ready'
-  if (!meeting.running) return 'paused'
   if (remaining < 0) return 'late'
   const active = meeting.subjects[meeting.activeIndex]
   const progress = active ? active.spent / Math.max(1, active.allocation) : 0

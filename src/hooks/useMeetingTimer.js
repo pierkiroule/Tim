@@ -3,6 +3,7 @@ import { closeActiveSubject, createMeeting, normalizeConfig, tickMeeting } from 
 
 export function useMeetingTimer() {
   const [meeting, setMeeting] = useState(() => createMeeting())
+  const [animationKey, setAnimationKey] = useState(0)
   const lastTick = useRef(performance.now())
 
   useEffect(() => {
@@ -23,12 +24,13 @@ export function useMeetingTimer() {
     })
   }, [])
 
-  const toggle = useCallback(() => {
+  const start = useCallback(() => {
     lastTick.current = performance.now()
     setMeeting((current) => {
-      if (current.finished) return createMeeting(current.duration, current.subjectCount)
-      return { ...current, started: true, running: !current.running }
+      if (current.started || current.finished) return current
+      return { ...current, started: true, running: true }
     })
+    setAnimationKey((key) => key + 1)
   }, [])
 
   const next = useCallback(() => {
@@ -39,6 +41,7 @@ export function useMeetingTimer() {
   const reset = useCallback(() => {
     lastTick.current = performance.now()
     setMeeting((current) => createMeeting(current.duration, current.subjectCount))
+    setAnimationKey((key) => key + 1)
   }, [])
 
   const rename = useCallback((title) => {
@@ -50,5 +53,5 @@ export function useMeetingTimer() {
     }))
   }, [])
 
-  return { meeting, configure, toggle, next, reset, rename }
+  return { meeting, animationKey, configure, start, next, reset, rename }
 }

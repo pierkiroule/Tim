@@ -27,7 +27,7 @@ function Stick({ meeting, subject, index, active }) {
   const state = subject.done ? 'done' : active ? 'active' : delta > 1 ? 'gain' : delta < -1 ? 'loss' : 'planned'
 
   return (
-    <g className={`stick stick--${state}`}>
+    <g className={`stick stick--${state}`} style={{ '--stick-index': index }}>
       <line className="stick-track" x1={start.x} y1={start.y} x2={cap.x} y2={cap.y} />
       <line className="stick-value" x1={start.x} y1={start.y} x2={end.x} y2={end.y} />
       <circle className="stick-plan" cx={plan.x} cy={plan.y} r="2.5" />
