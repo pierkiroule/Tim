@@ -95,6 +95,25 @@ describe('meeting domain', () => {
     expect(reframed.subjects[3].allocation).toBe(225)
   })
 
+  it('uses a pre-start reframing as the new allocation baseline', () => {
+    const now = 1_000_000
+    const meeting = createMeeting()
+    const reframed = reframeMeeting(meeting, now + 4 * 60 * 1000, 10, 1, now)
+
+    expect(reframed.initialShare).toBe(18)
+    expect(reframed.subjects.map((subject) => subject.allocation)).toEqual(Array(10).fill(18))
+    expect(liveAllocation(reframed, 1) - reframed.initialShare).toBe(0)
+  })
+
+  it('refreshes the baseline when the first start accounts for setup time', () => {
+    const now = 1_000_000
+    const meeting = createMeeting(30, 3, 5)
+    const reframed = reframeMeeting(meeting, now + 20 * 60 * 1000, 3, 5, now)
+
+    expect(reframed.initialShare).toBe(300)
+    expect(reframed.subjects.map((subject) => subject.allocation)).toEqual([300, 300, 300])
+  })
+
   it('never removes completed subjects during a live reframing', () => {
     let meeting = { ...createMeeting(30, 3), started: true, running: true }
     meeting = closeActiveSubject(meeting)

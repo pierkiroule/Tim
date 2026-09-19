@@ -75,6 +75,10 @@ export function reframeMeeting(meeting, endAt, requestedSubjectCount, plannedPau
   const pauseOverage = Math.max(0, meeting.pauseSpent - pauseAllowance)
   const remainingCount = subjects.filter((subject) => !subject.done).length
   const share = remainingCount ? exchangeRemaining / remainingCount : 0
+  // Tant que la réunion n'a pas commencé, un nouveau cadrage devient le plan
+  // de référence. Sans cette mise à jour, le cadrage démo conservait la part
+  // du cadrage initial (6 minutes) et affichait aussitôt une perte artificielle.
+  const initialShare = meeting.started ? meeting.initialShare : share
   const spent = subjects.reduce((sum, subject) => sum + subject.spent, 0)
   const reframedSubjects = subjects.map((subject, index) => subject.done ? subject : {
     ...subject,
@@ -88,6 +92,7 @@ export function reframeMeeting(meeting, endAt, requestedSubjectCount, plannedPau
     subjectCount,
     plannedPauseMinutes: pauseMinutes,
     pauseAllowance,
+    initialShare,
     totalSeconds: spent + exchangeRemaining + pauseOverage,
     endAt: safeEndAt,
     subjects: reframedSubjects,
