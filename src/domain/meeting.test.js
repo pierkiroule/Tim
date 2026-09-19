@@ -63,8 +63,21 @@ describe('meeting domain', () => {
     expect(running.subjects[0].spent).toBe(5)
   })
 
+  it('ignores invalid elapsed time instead of corrupting the timer', () => {
+    const meeting = { ...createMeeting(30, 3), running: true }
+    expect(tickMeeting(meeting, Number.NaN)).toBe(meeting)
+    expect(tickMeeting(meeting, Number.POSITIVE_INFINITY)).toBe(meeting)
+  })
+
+  it('cannot close a subject before start or during a pause', () => {
+    const idle = createMeeting(30, 3)
+    expect(closeActiveSubject(idle)).toBe(idle)
+    const paused = { ...idle, started: true, running: false, paused: true }
+    expect(closeActiveSubject(paused)).toBe(paused)
+  })
+
   it('redistributes time saved by a completed subject', () => {
-    let meeting = createMeeting(30, 3)
+    let meeting = { ...createMeeting(30, 3), started: true, running: true }
     meeting = { ...meeting, subjects: meeting.subjects.map((subject, i) => i === 0 ? { ...subject, spent: 300 } : subject) }
     meeting = closeActiveSubject(meeting)
     expect(meeting.subjects[1].allocation).toBe(750)

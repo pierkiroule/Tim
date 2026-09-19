@@ -94,7 +94,7 @@ export function impactPerFuture(meeting) {
 }
 
 export function tickMeeting(meeting, elapsedSeconds) {
-  if (meeting.finished || elapsedSeconds <= 0) return meeting
+  if (meeting.finished || !Number.isFinite(elapsedSeconds) || elapsedSeconds <= 0) return meeting
   if (meeting.paused) {
     const remainingCount = meeting.subjects.filter((subject) => !subject.done).length
     const previousOverage = Math.max(0, meeting.pauseSpent - meeting.pauseAllowance)
@@ -121,7 +121,7 @@ export function tickMeeting(meeting, elapsedSeconds) {
 }
 
 export function closeActiveSubject(meeting) {
-  if (meeting.finished) return meeting
+  if (!meeting.started || meeting.paused || meeting.finished) return meeting
   const active = activeSubject(meeting)
   if (!active || active.done) return meeting
 

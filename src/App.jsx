@@ -35,13 +35,21 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.target.matches('input, button')) return
+      if (tutorialOpen || event.target.matches('input, button, textarea, select, [contenteditable="true"]')) return
       if (event.code === 'Space') { event.preventDefault(); meeting.started ? togglePause() : start() }
       if (event.key === 'Enter' && meeting.started && !meeting.paused && !meeting.finished) next()
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [meeting.finished, meeting.paused, meeting.started, next, start, togglePause])
+  }, [meeting.finished, meeting.paused, meeting.started, next, start, togglePause, tutorialOpen])
+
+  useEffect(() => {
+    document.title = meeting.finished
+      ? 'Réunion terminée · MikadoTimer'
+      : meeting.started
+        ? `${meeting.paused ? 'Pause' : activeRemaining(meeting) < 0 ? 'Dépassement' : 'En cours'} · MikadoTimer`
+        : 'MikadoTimer · Réunions bien rythmées'
+  }, [meeting])
 
   return (
     <div className="app-shell" id="top">

@@ -1,8 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { closeActiveSubject, createMeeting, normalizeConfig, tickMeeting } from '../domain/meeting'
 
+const STORAGE_KEY = 'mikadotimer:meeting:v1'
+
+function restoreMeeting() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY))
+    if (!saved?.meeting || !Array.isArray(saved.meeting.subjects)) return createMeeting()
+    const meeting = saved.meeting
+    const valid = Number.isFinite(meeting.totalSeconds)
+      && meeting.subjects.length === meeting.subjectCount
+      && meeting.activeIndex >= 0
+      && meeting.activeIndex < meeting.subjects.length
+    if (!valid) return createMeeting()
+    const elapsed = meeting.running && !meeting.finished
+      ? Math.max(0, (Date.now() - Number(saved.savedAt || Date.now())) / 1000)
+      : 0
+    return tickMeeting(meeting, elapsed)
+  } catch {
+    return createMeeting()
+  }
+}
+
 export function useMeetingTimer() {
-  const [meeting, setMeeting] = useState(() => createMeeting())
+  const [meeting, setMeeting] = useState(restoreMeeting)
   const [animationKey, setAnimationKey] = useState(0)
   const [introKey, setIntroKey] = useState(0)
   const lastTick = useRef(performance.now())
@@ -16,6 +37,14 @@ export function useMeetingTimer() {
     }, 200)
     return () => window.clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ meeting, savedAt: Date.now() }))
+    } catch {
+      // Le chronomètre reste utilisable lorsque le stockage privé est indisponible.
+    }
+  }, [meeting])
 
   const configure = useCallback((duration, subjectCount, plannedPauseMinutes) => {
     setMeeting((current) => {
