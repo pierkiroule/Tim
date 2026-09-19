@@ -27,9 +27,12 @@ export function MikadoIntro() {
   if (!visible) return null
 
   return (
-    <div className="mikado-intro" aria-hidden="true">
+    <div className="mikado-intro">
+      <span className="mikado-intro__orb mikado-intro__orb--one" aria-hidden="true" />
+      <span className="mikado-intro__orb mikado-intro__orb--two" aria-hidden="true" />
       <div className="mikado-intro__scene">
-        <div className="mikado-intro__sticks">
+        <span className="mikado-intro__kicker">Votre réunion prend forme</span>
+        <div className="mikado-intro__sticks" aria-hidden="true">
           {sticks.map(([x, y, start, end], index) => (
             <i
               className={`mikado-intro__stick mikado-intro__stick--${index % 3}`}
@@ -40,8 +43,10 @@ export function MikadoIntro() {
           <span className="mikado-intro__dial" />
         </div>
         <div className="mikado-intro__brand"><strong>Mikado</strong>Timer</div>
-        <p>Le temps partagé, sans perdre le fil.</p>
+        <p>Chaque idée trouve son temps.</p>
+        <span className="mikado-intro__progress" aria-hidden="true" />
       </div>
+      <button className="mikado-intro__skip" type="button" onClick={() => setVisible(false)}>Passer l’introduction</button>
     </div>
   )
 }
