@@ -25,7 +25,7 @@ export function Configuration({ meeting, onConfigure }) {
           {PRESETS.map((preset) => {
             const active = meeting.duration === preset.duration && meeting.subjectCount === preset.subjectCount && meeting.plannedPauseMinutes === 0
             return (
-              <button className={`preset ${active ? 'preset--active' : ''}`} type="button" key={preset.duration} disabled={meeting.started} onClick={() => onConfigure(preset.duration, preset.subjectCount)} aria-pressed={active}>
+              <button className={`preset ${active ? 'preset--active' : ''}`} type="button" key={preset.duration} disabled={meeting.started} onClick={() => onConfigure(preset.duration, preset.subjectCount, 0)} aria-pressed={active}>
                 <strong>{preset.duration} min</strong><small>{preset.subjectCount} sujets</small>
               </button>
             )

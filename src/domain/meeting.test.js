@@ -15,11 +15,13 @@ describe('meeting domain', () => {
     expect(normalizeConfig(0, 101, 999)).toEqual({ duration: 1, subjectCount: 100, plannedPauseMinutes: 480 })
   })
 
-  it('starts with a one-minute meeting split into six subjects', () => {
+  it('starts with a three-minute meeting, ten subjects and a one-minute pause', () => {
     const meeting = createMeeting()
-    expect(meeting.duration).toBe(1)
-    expect(meeting.subjectCount).toBe(6)
-    expect(meeting.subjects).toHaveLength(6)
+    expect(meeting.duration).toBe(3)
+    expect(meeting.subjectCount).toBe(10)
+    expect(meeting.subjects).toHaveLength(10)
+    expect(meeting.plannedPauseMinutes).toBe(1)
+    expect(meeting.pauseAllowance).toBe(60)
   })
 
   it('accepts a meeting with only one subject', () => {
@@ -32,7 +34,7 @@ describe('meeting domain', () => {
   })
 
   it('subtracts elapsed pause time from all remaining subjects', () => {
-    const meeting = { ...createMeeting(60, 5), started: true, paused: true }
+    const meeting = { ...createMeeting(60, 5, 0), started: true, paused: true }
     const paused = tickMeeting(meeting, 50)
     expect(paused.pauseSpent).toBe(50)
     expect(paused.subjects.map((subject) => subject.allocation)).toEqual([710, 710, 710, 710, 710])

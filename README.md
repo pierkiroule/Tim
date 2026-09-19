@@ -2,6 +2,8 @@
 
 Webapp React qui répartit le temps d'une réunion entre ses sujets et redistribue automatiquement l'avance ou le retard sur ceux qui restent.
 
+Le cadrage proposé au démarrage est de 3 minutes d’échanges, 10 sujets et 1 minute de pause prévue.
+
 ## Stack
 
 - React 19 ;

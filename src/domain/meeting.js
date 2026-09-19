@@ -1,5 +1,6 @@
-export const DEFAULT_DURATION = 1
-export const DEFAULT_SUBJECT_COUNT = 6
+export const DEFAULT_DURATION = 3
+export const DEFAULT_SUBJECT_COUNT = 10
+export const DEFAULT_PLANNED_PAUSE = 1
 export const MIN_DURATION = 1
 export const MAX_DURATION = 480
 export const MIN_SUBJECTS = 1
@@ -11,7 +12,7 @@ export function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value))
 }
 
-export function normalizeConfig(duration, subjectCount, plannedPauseMinutes = 0) {
+export function normalizeConfig(duration, subjectCount, plannedPauseMinutes = DEFAULT_PLANNED_PAUSE) {
   const safeDuration = Number.isFinite(Number(duration)) ? Number(duration) : DEFAULT_DURATION
   const safeCount = Number.isFinite(Number(subjectCount)) ? Number(subjectCount) : DEFAULT_SUBJECT_COUNT
 
@@ -23,7 +24,7 @@ export function normalizeConfig(duration, subjectCount, plannedPauseMinutes = 0)
   }
 }
 
-export function createMeeting(duration = DEFAULT_DURATION, subjectCount = DEFAULT_SUBJECT_COUNT, plannedPauseMinutes = 0) {
+export function createMeeting(duration = DEFAULT_DURATION, subjectCount = DEFAULT_SUBJECT_COUNT, plannedPauseMinutes = DEFAULT_PLANNED_PAUSE) {
   const config = normalizeConfig(duration, subjectCount, plannedPauseMinutes)
   const totalSeconds = config.duration * 60
   const pauseAllowance = config.plannedPauseMinutes * 60
