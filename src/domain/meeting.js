@@ -111,6 +111,10 @@ export function activeRemaining(meeting) {
   return subject && !subject.done ? subject.allocation - subject.spent : 0
 }
 
+export function remainingSubjectCount(meeting) {
+  return meeting.subjects.filter((subject) => !subject.done).length
+}
+
 export function futureIndices(meeting) {
   return meeting.subjects
     .map((subject, index) => ({ subject, index }))
