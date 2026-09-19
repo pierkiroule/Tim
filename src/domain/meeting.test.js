@@ -15,13 +15,13 @@ describe('meeting domain', () => {
     expect(normalizeConfig(0, 101, 999)).toEqual({ duration: 1, subjectCount: 100, plannedPauseMinutes: 480 })
   })
 
-  it('starts with a three-minute meeting, ten subjects and a one-minute pause', () => {
+  it('starts with a three-hour meeting, thirty subjects and a fifteen-minute pause', () => {
     const meeting = createMeeting()
-    expect(meeting.duration).toBe(3)
-    expect(meeting.subjectCount).toBe(10)
-    expect(meeting.subjects).toHaveLength(10)
-    expect(meeting.plannedPauseMinutes).toBe(1)
-    expect(meeting.pauseAllowance).toBe(60)
+    expect(meeting.duration).toBe(180)
+    expect(meeting.subjectCount).toBe(30)
+    expect(meeting.subjects).toHaveLength(30)
+    expect(meeting.plannedPauseMinutes).toBe(15)
+    expect(meeting.pauseAllowance).toBe(900)
   })
 
   it('accepts a meeting with only one subject', () => {

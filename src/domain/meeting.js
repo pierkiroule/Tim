@@ -1,6 +1,6 @@
-export const DEFAULT_DURATION = 3
-export const DEFAULT_SUBJECT_COUNT = 10
-export const DEFAULT_PLANNED_PAUSE = 1
+export const DEFAULT_DURATION = 180
+export const DEFAULT_SUBJECT_COUNT = 30
+export const DEFAULT_PLANNED_PAUSE = 15
 export const MIN_DURATION = 1
 export const MAX_DURATION = 480
 export const MIN_SUBJECTS = 1
