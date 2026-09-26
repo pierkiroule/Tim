@@ -12,7 +12,10 @@ export function Dashboard({ meeting, meetingTime, subjectTime, impact }) {
     return () => window.clearInterval(timer)
   }, [])
   const activeNumber = Math.min(meeting.activeIndex + 1, meeting.subjectCount)
-  const endTime = new Date(now.getTime() + meetingTime * 1000)
+  // `meetingTime` and this component's clock are refreshed by two independent
+  // timers. Adding them can therefore briefly move the displayed deadline when
+  // only one of the timers has ticked. `endAt` is the configured source of truth.
+  const endTime = new Date(meeting.endAt)
   return (
     <section className="dashboard" aria-label="Indicateurs de la réunion">
       <article className="dashboard-global"><span>Temps global restant</span><strong className={meetingTime < 0 ? 'negative' : ''}>{formatTime(meetingTime, { signed: true })}</strong><small>sur {formatTime(meeting.totalSeconds + meeting.pauseAllowance)}, pause incluse</small></article>
